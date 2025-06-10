@@ -1,0 +1,837 @@
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Date Range Search</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* Fonts */
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background:
+        radial-gradient(circle at 20% 20%, #0a0010 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, #1a002a 0%, transparent 40%),
+        linear-gradient(135deg, #05000a 0%, #0f001a 50%, #1a002a 100%);
+      color: #c0c0d0;
+      min-height: 100vh;
+      margin: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-attachment: fixed;
+    }
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.12em;
+      color: #66ccff;
+      user-select: none;
+      font-weight: 700;
+      text-shadow:
+        0 0 3px #3399ffaa,
+        0 0 6px #3399ffbb;
+      margin-bottom: 1.5rem;
+    }
+    /* Container styling */
+    main {
+      background: linear-gradient(145deg, #0a001a, #1a0033);
+      border-radius: 1rem;
+      box-shadow:
+        inset 0 0 20px #3399ff88,
+        0 0 40px #3399ffbb;
+      padding: 2rem 2.5rem 2.5rem 2.5rem;
+      max-width: 480px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 1.5px solid #3399ff;
+    }
+    label {
+      color: #66ccff;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      user-select: none;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+    /* Inputs */
+    input[type="text"],
+    input[type="search"],
+    select {
+      background: #12002a;
+      border: 1.5px solid #3399ff;
+      color: #c0d9ff;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+      box-shadow: inset 0 0 8px #3399ff88;
+      user-select: text;
+      -webkit-text-fill-color: #c0d9ff;
+      -webkit-box-shadow: inset 0 0 8px #3399ff88;
+      caret-color: #66ccff;
+      position: relative;
+      z-index: 1;
+    }
+    input[type="text"]::placeholder,
+    input[type="search"]::placeholder {
+      color: #5577aa;
+      font-style: normal;
+      letter-spacing: 0.05em;
+    }
+    input[type="text"]:focus,
+    input[type="search"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #66ccff;
+      box-shadow:
+        0 0 10px #66ccff,
+        inset 0 0 12px #66ccff;
+      background: #1a0044;
+      color: #d0e8ff;
+      -webkit-text-fill-color: #d0e8ff;
+      z-index: 2;
+    }
+    /* Remove pointer-events-none on overlay to fix shading on input text */
+    .pointer-events-none {
+      pointer-events: none;
+      color: #334466;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      user-select: none;
+      text-shadow: none;
+      z-index: 0;
+    }
+    /* Buttons */
+    button {
+      background: #3399ff;
+      border-radius: 9999px;
+      color: #0a001a;
+      font-weight: 700;
+      box-shadow:
+        0 0 12px #3399ffcc,
+        0 0 30px #66ccffcc;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      z-index: 10;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      width: 44px;
+      height: 44px;
+      font-size: 1.3rem;
+      padding: 0;
+    }
+    button:hover,
+    button:focus {
+      background: #66ccff;
+      color: #0a002a;
+      box-shadow:
+        0 0 20px #66ccffdd,
+        0 0 50px #99ddffdd;
+      outline: none;
+    }
+    /* Checkbox */
+    input[type="checkbox"] {
+      accent-color: #66ccff;
+      cursor: pointer;
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 0.25rem;
+      border: 1.5px solid #3399ff;
+      background: #12002a;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      user-select: none;
+      vertical-align: middle;
+    }
+    input[type="checkbox"]:checked {
+      background: #66ccff;
+      border-color: #66ccff;
+    }
+    /* Keyword bubbles */
+    .keyword-bubble {
+      display: inline-flex;
+      align-items: center;
+      background-color: #224477;
+      color: #c0d9ff;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border-radius: 9999px;
+      padding: 0.125rem 0.5rem;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      user-select: none;
+      cursor: default;
+      white-space: nowrap;
+      box-shadow:
+        0 0 6px #3399ffcc,
+        inset 0 0 6px #66ccffcc;
+      transition: background-color 0.3s ease;
+    }
+    .keyword-bubble .remove-btn {
+      margin-left: 0.25rem;
+      cursor: pointer;
+      font-weight: 900;
+      color: #99bbff;
+      user-select: none;
+      transition: color 0.3s ease;
+    }
+    .keyword-bubble .remove-btn:hover,
+    .keyword-bubble .remove-btn:focus {
+      color: #cce6ff;
+      outline: none;
+    }
+    /* Remove border from bubble containers */
+    #mustIncludeContainer,
+    #mustOmitContainer {
+      border: none !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      min-height: auto !important;
+      cursor: text;
+      max-height: 6rem;
+      overflow-y: auto;
+    }
+    /* Scrollbar styling */
+    #mustIncludeContainer::-webkit-scrollbar,
+    #mustOmitContainer::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #mustIncludeContainer::-webkit-scrollbar-thumb,
+    #mustOmitContainer::-webkit-scrollbar-thumb {
+      background-color: #3399ff88;
+      border-radius: 3px;
+    }
+    #mustIncludeContainer::-webkit-scrollbar-track,
+    #mustOmitContainer::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    /* Responsive tweaks */
+    @media (max-width: 480px) {
+      main {
+        max-width: 100%;
+        padding: 1.5rem 1rem 2rem 1rem;
+      }
+      /* Make select narrower on mobile */
+      #searchEngine {
+        width: 140px !important;
+        font-size: 0.875rem !important;
+        padding-right: 2rem !important;
+      }
+      /* Search keywords input bigger on mobile */
+      #searchKeywords {
+        font-size: 1rem !important;
+      }
+    }
+    /* Custom select styling for sleek dropdown */
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, #66ccff 50%),
+        linear-gradient(135deg, #66ccff 50%, transparent 50%),
+        linear-gradient(to right, #12002a, #12002a);
+      background-position:
+        calc(100% - 20px) calc(1em + 2px),
+        calc(100% - 15px) calc(1em + 2px),
+        calc(100% - 2.5rem) 0.5rem;
+      background-size: 5px 5px, 5px 5px, 1px 1.5rem;
+      background-repeat: no-repeat;
+      padding-right: 2.5rem;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      cursor: pointer;
+      box-shadow:
+        inset 0 0 8px #3399ff88;
+      width: 180px;
+      max-width: 100%;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+      line-height: 1.8rem;
+      height: 2.5rem;
+      vertical-align: middle;
+    }
+    select:focus {
+      background-image:
+        linear-gradient(45deg, transparent 50%, #99ddff 50%),
+        linear-gradient(135deg, #99ddff 50%, transparent 50%),
+        linear-gradient(to right, #1a0044, #1a0044);
+      border-color: #99ddff;
+      box-shadow:
+        0 0 8px #99ddff,
+        inset 0 0 12px #99ddff;
+      background-color: #1a0044;
+      color: #d0e8ff;
+      outline: none;
+    }
+    /* Dropdown menu styling */
+    select option {
+      background: #12002a;
+      color: #d0e8ff;
+      padding: 0.25rem 0.5rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-weight: 600;
+    }
+    /* Fix arrow vertical alignment */
+    select::-ms-expand {
+      display: none;
+    }
+    /* Positioning for search input and button */
+    #searchInputWrapper {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 0.5rem;
+    }
+    #searchKeywords {
+      flex-grow: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      border: 1.5px solid #3399ff;
+      background: #12002a;
+      color: #c0d9ff;
+      box-shadow: inset 0 0 8px #3399ff88;
+      -webkit-text-fill-color: #c0d9ff;
+      caret-color: #66ccff;
+      height: 2.5rem;
+      line-height: 2.5rem;
+      user-select: text;
+    }
+    /* Advanced search button styling and positioning */
+    #advancedSearchButtonWrapper {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #advancedSearchButtonWrapper.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+    #advancedSearchButton {
+      padding: 0;
+      font-size: 1.3rem;
+      border-radius: 9999px;
+      background: #3399ff;
+      color: #0a001a;
+      box-shadow: 0 0 12px #3399ffcc, 0 0 30px #66ccffcc;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    #advancedSearchButton:hover,
+    #advancedSearchButton:focus {
+      background: #66ccff;
+      color: #0a002a;
+      box-shadow: 0 0 20px #66ccffdd, 0 0 50px #99ddffdd;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Date Range Search</h1>
+    <form id="searchForm" class="space-y-6 flex flex-col" autocomplete="off" novalidate>
+      <div class="flex flex-col space-y-4">
+        <div class="flex flex-col w-full max-w-xs mx-auto relative">
+          <label for="searchEngine">Select Search Engine</label>
+          <select
+            id="searchEngine"
+            name="searchEngine"
+            aria-label="Select search engine"
+            required
+          >
+            <option value="google" selected>Google</option>
+            <option value="yandex">Yandex</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0">
+        <div class="flex flex-col w-full sm:w-1/2">
+          <label for="fromDate">From</label>
+          <div class="relative">
+            <input
+              id="fromDate"
+              name="fromDate"
+              type="text"
+              inputmode="numeric"
+              pattern="\d{2}/\d{2}/\d{4}"
+              placeholder="mm/dd/yyyy"
+              maxlength="10"
+              required
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+              autocomplete="off"
+            />
+            <div
+              class="pointer-events-none absolute inset-y-0 left-3 flex items-center select-none"
+              aria-hidden="true"
+            >
+              __/__/____
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col w-full sm:w-1/2">
+          <label for="untilDate">Until</label>
+          <div class="relative">
+            <input
+              id="untilDate"
+              name="untilDate"
+              type="text"
+              inputmode="numeric"
+              pattern="\d{2}/\d{2}/\d{4}"
+              placeholder="mm/dd/yyyy"
+              maxlength="10"
+              aria-describedby="untilDateHelp"
+              required
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+              autocomplete="off"
+            />
+            <div
+              class="pointer-events-none absolute inset-y-0 left-3 flex items-center select-none"
+              aria-hidden="true"
+            >
+              __/__/____
+            </div>
+          </div>
+          <p id="untilDateHelp" class="mt-1 text-xs select-none">
+            Automatically set to today's date, unless otherwise specified
+          </p>
+        </div>
+      </div>
+
+      <div id="searchInputWrapper" class="relative flex items-center" style="width: 100%;">
+        <input
+          id="searchKeywords"
+          name="searchKeywords"
+          type="search"
+          placeholder="Enter keywords to search"
+          required
+          aria-label="Search keywords"
+          spellcheck="false"
+          autocorrect="off"
+          autocapitalize="off"
+          autocomplete="off"
+        />
+        <button
+          type="submit"
+          aria-label="Search"
+          id="searchButton"
+          title="Search"
+        >
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="advancedSearchToggle"
+          name="advancedSearchToggle"
+          aria-describedby="advancedSearchLabel"
+        />
+        <label for="advancedSearchToggle" id="advancedSearchLabel" class="select-none cursor-pointer">
+          Advanced Search
+        </label>
+      </div>
+
+      <div id="advancedSearchFields" class="space-y-6 hidden mt-4">
+        <div>
+          <label for="mustIncludeInput" class="mb-1 block">It must include the following keywords</label>
+          <div id="mustIncludeContainer" class="flex flex-wrap items-center gap-1 min-h-[44px] cursor-text focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500" tabindex="0" aria-label="Must include keywords input container" role="textbox" aria-multiline="true"></div>
+          <input
+            id="mustIncludeInput"
+            type="text"
+            class="w-full mt-1"
+            placeholder="Type keyword and press space"
+            aria-describedby="mustIncludeHelp"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p id="mustIncludeHelp" class="mt-1 text-xs select-none" style="color:#66ccff;">
+            Press the space bar after each keyword to save
+          </p>
+        </div>
+
+        <div>
+          <label for="mustOmitInput" class="mb-1 block">It must omit the following keywords</label>
+          <div id="mustOmitContainer" class="flex flex-wrap items-center gap-1 min-h-[44px] cursor-text focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500" tabindex="0" aria-label="Must omit keywords input container" role="textbox" aria-multiline="true"></div>
+          <input
+            id="mustOmitInput"
+            type="text"
+            class="w-full mt-1"
+            placeholder="Type keyword and press space"
+            aria-describedby="mustOmitHelp"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p id="mustOmitHelp" class="mt-1 text-xs select-none" style="color:#66ccff;">
+            Press the space bar after each keyword to save
+          </p>
+        </div>
+      </div>
+
+      <div id="advancedSearchButtonWrapper" class="mt-6 flex justify-end" style="display:none;">
+        <button
+          type="submit"
+          aria-label="Search"
+          id="advancedSearchButton"
+          title="Search"
+        >
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    (() => {
+      const fromInput = document.getElementById('fromDate');
+      const untilInput = document.getElementById('untilDate');
+      const form = document.getElementById('searchForm');
+      const searchEngineSelect = document.getElementById('searchEngine');
+      const advancedToggle = document.getElementById('advancedSearchToggle');
+      const advancedFields = document.getElementById('advancedSearchFields');
+      const searchKeywordsInput = document.getElementById('searchKeywords');
+      const searchButton = document.getElementById('searchButton');
+      const advancedSearchButtonWrapper = document.getElementById('advancedSearchButtonWrapper');
+      const advancedSearchButton = document.getElementById('advancedSearchButton');
+
+      // Advanced inputs and containers
+      const mustIncludeInput = document.getElementById('mustIncludeInput');
+      const mustIncludeContainer = document.getElementById('mustIncludeContainer');
+      const mustOmitInput = document.getElementById('mustOmitInput');
+      const mustOmitContainer = document.getElementById('mustOmitContainer');
+
+      // Today's date
+      const today = new Date();
+
+      // Utility functions for date formatting/parsing
+      function formatDateToMMDDYYYY(date) {
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+      }
+
+      function parseMMDDYYYYToDate(str) {
+        const parts = str.split('/');
+        if (parts.length !== 3) return null;
+        const mm = parseInt(parts[0], 10);
+        const dd = parseInt(parts[1], 10);
+        const yyyy = parseInt(parts[2], 10);
+        if (
+          isNaN(mm) || isNaN(dd) || isNaN(yyyy) ||
+          mm < 1 || mm > 12 ||
+          dd < 1 || dd > 31 ||
+          yyyy < 1000 || yyyy > 9999
+        ) return null;
+        return new Date(yyyy, mm - 1, dd);
+      }
+
+      function formatDateToYYYYMMDD(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      }
+
+      function formatDateToYYYYMMDDNoDash(date) {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${yyyy}${mm}${dd}`;
+      }
+
+      // Initialize untilInput with today's date
+      untilInput.value = formatDateToMMDDYYYY(today);
+
+      // Date inputs validation and clamping
+      fromInput.addEventListener('input', () => {
+        const fromDate = parseMMDDYYYYToDate(fromInput.value);
+        if (!fromDate) return;
+        const untilDate = parseMMDDYYYYToDate(untilInput.value);
+        if (!untilDate) {
+          untilInput.value = formatDateToMMDDYYYY(today);
+          return;
+        }
+        if (fromDate > untilDate) {
+          const newUntil = fromDate > today ? today : fromDate;
+          untilInput.value = formatDateToMMDDYYYY(newUntil);
+        }
+      });
+
+      untilInput.addEventListener('input', () => {
+        const untilDate = parseMMDDYYYYToDate(untilInput.value);
+        const fromDate = parseMMDDYYYYToDate(fromInput.value);
+        if (!untilDate) return;
+        if (untilDate > today) {
+          untilInput.value = formatDateToMMDDYYYY(today);
+          return;
+        }
+        if (fromDate && untilDate < fromDate) {
+          untilInput.value = formatDateToMMDDYYYY(fromDate);
+        }
+      });
+
+      // Keyword bubble management for advanced inputs
+      function createBubble(text, container, onRemove) {
+        const bubble = document.createElement('span');
+        bubble.className = 'keyword-bubble';
+        bubble.textContent = text;
+
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'remove-btn';
+        removeBtn.setAttribute('aria-label', `Remove keyword ${text}`);
+        removeBtn.setAttribute('role', 'button');
+        removeBtn.tabIndex = 0;
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          onRemove(text);
+        });
+        removeBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onRemove(text);
+          }
+        });
+
+        bubble.appendChild(removeBtn);
+        container.appendChild(bubble);
+      }
+
+      // Parse input text on space or enter, add bubbles, clear input
+      function handleKeywordInput(inputElem, container, keywordsSet) {
+        inputElem.addEventListener('keydown', (e) => {
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            const val = inputElem.value.trim();
+            if (val && !keywordsSet.has(val.toLowerCase())) {
+              keywordsSet.add(val.toLowerCase());
+              renderBubbles(container, keywordsSet);
+              inputElem.value = '';
+            }
+          }
+        });
+
+        // Also handle blur to add last typed word if any
+        inputElem.addEventListener('blur', () => {
+          const val = inputElem.value.trim();
+          if (val && !keywordsSet.has(val.toLowerCase())) {
+            keywordsSet.add(val.toLowerCase());
+            renderBubbles(container, keywordsSet);
+            inputElem.value = '';
+          }
+        });
+
+        // Clicking container focuses input
+        container.addEventListener('click', () => {
+          inputElem.focus();
+        });
+      }
+
+      // Render bubbles from keywords set
+      function renderBubbles(container, keywordsSet) {
+        container.innerHTML = '';
+        keywordsSet.forEach((kw) => {
+          createBubble(kw, container, (text) => {
+            keywordsSet.delete(text.toLowerCase());
+            renderBubbles(container, keywordsSet);
+          });
+        });
+      }
+
+      // Sets to hold keywords
+      const mustIncludeKeywords = new Set();
+      const mustOmitKeywords = new Set();
+
+      // Initialize bubble inputs
+      handleKeywordInput(mustIncludeInput, mustIncludeContainer, mustIncludeKeywords);
+      handleKeywordInput(mustOmitInput, mustOmitContainer, mustOmitKeywords);
+
+      // Advanced search toggle logic
+      function updateArrowButtons() {
+        if (advancedToggle.checked) {
+          advancedFields.classList.remove('hidden');
+          searchButton.style.display = 'none';
+          advancedSearchButtonWrapper.style.display = 'flex';
+          advancedSearchButtonWrapper.classList.add('visible');
+        } else {
+          advancedFields.classList.add('hidden');
+          searchButton.style.display = '';
+          advancedSearchButtonWrapper.style.display = 'none';
+          advancedSearchButtonWrapper.classList.remove('visible');
+          mustIncludeKeywords.clear();
+          mustOmitKeywords.clear();
+          renderBubbles(mustIncludeContainer, mustIncludeKeywords);
+          renderBubbles(mustOmitContainer, mustOmitKeywords);
+          mustIncludeInput.value = '';
+          mustOmitInput.value = '';
+        }
+      }
+
+      advancedToggle.addEventListener('change', updateArrowButtons);
+
+      // Initialize arrow buttons visibility on page load
+      window.addEventListener('DOMContentLoaded', () => {
+        advancedSearchButtonWrapper.style.display = 'none';
+        searchButton.style.display = '';
+      });
+
+      // Build search URL and query based on engine and date range + advanced keywords
+      function buildSearchURL(engine, keywords, fromDate, untilDate, mustInclude, mustOmit) {
+        function escapeQuotes(str) {
+          return str.replace(/"/g, '\\"');
+        }
+        switch (engine) {
+          case 'google': {
+            const fromFormatted = formatDateToYYYYMMDD(fromDate);
+            const untilFormatted = formatDateToYYYYMMDD(untilDate);
+            let query = keywords.trim();
+            mustInclude.forEach((kw) => {
+              if (kw) query += ` "${escapeQuotes(kw)}"`;
+            });
+            mustOmit.forEach((kw) => {
+              if (kw) query += ` -${escapeQuotes(kw)}`;
+            });
+            query += ` daterange:${fromFormatted}..${untilFormatted}`;
+            return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          }
+          case 'yandex': {
+            const fromFormatted = formatDateToYYYYMMDDNoDash(fromDate);
+            const untilFormatted = formatDateToYYYYMMDDNoDash(untilDate);
+            let query = keywords.trim();
+            mustInclude.forEach((kw) => {
+              if (kw) query += ` ${kw}`;
+            });
+            mustOmit.forEach((kw) => {
+              if (kw) query += ` -${kw}`;
+            });
+            query += ` after:${fromFormatted} before:${untilFormatted}`;
+            return `https://yandex.com/search/?text=${encodeURIComponent(query)}`;
+          }
+          case 'duckduckgo': {
+            const fromFormatted = formatDateToYYYYMMDD(fromDate);
+            const untilFormatted = formatDateToYYYYMMDD(untilDate);
+            let query = keywords.trim();
+            mustInclude.forEach((kw) => {
+              if (kw) query += ` ${kw}`;
+            });
+            mustOmit.forEach((kw) => {
+              if (kw) query += ` -${kw}`;
+            });
+            query += ` after:${fromFormatted} before:${untilFormatted}`;
+            return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+          }
+          default: {
+            const fromF = formatDateToYYYYMMDD(fromDate);
+            const untilF = formatDateToYYYYMMDD(untilDate);
+            let q = keywords.trim();
+            mustInclude.forEach((kw) => {
+              if (kw) q += ` "${escapeQuotes(kw)}"`;
+            });
+            mustOmit.forEach((kw) => {
+              if (kw) q += ` -${escapeQuotes(kw)}`;
+            });
+            q += ` daterange:${fromF}..${untilF}`;
+            return `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+          }
+        }
+      }
+
+      // Form submission handler for main search button
+      searchButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        submitSearch(false);
+      });
+
+      // Form submission handler for advanced search button
+      advancedSearchButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        submitSearch(true);
+      });
+
+      // Common search submit function
+      function submitSearch(isAdvanced) {
+        const keywords = searchKeywordsInput.value.trim();
+        const fromStr = fromInput.value.trim();
+        const untilStr = untilInput.value.trim();
+        const engine = searchEngineSelect.value;
+
+        if (!keywords) {
+          alert('Please enter search keywords.');
+          searchKeywordsInput.focus();
+          return;
+        }
+
+        const fromDate = parseMMDDYYYYToDate(fromStr);
+        const untilDate = parseMMDDYYYYToDate(untilStr);
+
+        if (!fromDate) {
+          alert('Please enter a valid "From" date in mm/dd/yyyy format.');
+          fromInput.focus();
+          return;
+        }
+        if (!untilDate) {
+          alert('Please enter a valid "Until" date in mm/dd/yyyy format.');
+          untilInput.focus();
+          return;
+        }
+        if (fromDate > untilDate) {
+          alert('"From" date cannot be later than "Until" date.');
+          fromInput.focus();
+          return;
+        }
+        if (untilDate > today) {
+          alert('"Until" date cannot be later than today.');
+          untilInput.focus();
+          return;
+        }
+
+        let mustInclude = new Set();
+        let mustOmit = new Set();
+        if (isAdvanced) {
+          mustInclude = mustIncludeKeywords;
+          mustOmit = mustOmitKeywords;
+        }
+
+        const url = buildSearchURL(engine, keywords, fromDate, untilDate, mustInclude, mustOmit);
+
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+
+      // Initialize untilInput with today's date on page load
+      untilInput.value = formatDateToMMDDYYYY(today);
+    })();
+  </script>
+</body>
+</html>
